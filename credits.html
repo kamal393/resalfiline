@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche de Crédits - Alfiline</title>
+    <!-- Inclure Chart.js pour le graphique -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Inclure SheetJS pour Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        nav {
+            background: #444;
+            padding: 0.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background: #f9f9f9;
+        }
+
+        canvas {
+            max-width: 600px;
+            margin: 2rem auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gestion Résidence Alfiline</h1>
+        <nav>
+            <a href="index.html">🏠 Accueil</a>
+            <a href="depenses.html">Gestion des Dépenses et Revenus</a>
+            <a href="credits.html">Recherche de Crédits</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>Recherche de Crédits</h2>
+
+            <!-- Formulaire pour Ajouter un Déficit ou un Excédent -->
+            <form id="adjustment-form">
+                <label for="deficit">Déficit dans la Caisse (DH):</label>
+                <input type="number" id="deficit" step="0.01">
+
+                <label for="excedent">Excédent dans la Caisse (DH):</label>
+                <input type="number" id="excedent" step="0.01">
+
+                <button type="submit">Appliquer</button>
+            </form>
+
+            <!-- Formulaire de Recherche -->
+            <form id="search-form">
+                <label for="building">Bâtiment:</label>
+                <select id="building" required>
+                    <option value="">Sélectionnez un bâtiment</option>
+                    <option value="A">Bâtiment A</option>
+                    <option value="B">Bâtiment B</option>
+                    <option value="C">Bâtiment C</option>
+                    <option value="D">Bâtiment D</option>
+                    <option value="E">Bâtiment E</option>
+                </select>
+
+                <button type="submit">Rechercher</button>
+            </form>
+
+            <!-- Graphique des Crédits -->
+            <h3>Graphique des Crédits</h3>
+            <canvas id="credits-chart"></canvas>
+
+            <!-- Tableau des Résultats -->
+            <h3>Tableau des Crédits</h3>
+            <table id="credits-table">
+                <thead>
+                    <tr>
+                        <th>Appartement</th>
+                        <th>Dernier Mois Payé</th>
+                        <th>Somme Totale Due (DH)</th>
+                        <th>Somme Payée (DH)</th>
+                        <th>Crédit (DH)</th>
+                    </tr>
+                </thead>
+                <tbody id="credits-body">
+                    <!-- Données seront chargées dynamiquement -->
+                </tbody>
+            </table>
+
+            <!-- Bouton Exporter -->
+            <button id="export-btn" class="btn-export" onclick="exportCredits()">Exporter Excel</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Gestion Résidence Alfiline</p>
+    </footer>
+
+    <script>
+        const buildings = ['A', 'B', 'C', 'D', 'E']; // Liste des bâtiments
+
+        // Initialiser les données globales depuis localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            // Gérer l'ajout du déficit/excédent
+            document.getElementById('adjustment-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const deficit = parseFloat(document.getElementById('deficit').value) || 0;
+                const excedent = parseFloat(document.getElementById('excedent').value) || 0;
+
+                // Récupérer les ajustements existants
+                let cashAdjustment = JSON.parse(localStorage.getItem('cash-adjustment')) || { deficit: 0, excedent: 0 };
+
+                // Mettre à jour les ajustements
+                cashAdjustment.deficit += deficit;
+                cashAdjustment.excedent += excedent;
+
+                // Sauvegarder les ajustements dans localStorage
+                localStorage.setItem('cash-adjustment', JSON.stringify(cashAdjustment));
+
+                alert('Ajustement appliqué avec succès.');
+                this.reset();
+            });
+
+            // Rechercher les crédits pour un bâtiment spécifique
+            document.getElementById('search-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const building = document.getElementById('building').value.trim();
+                if (building) {
+                    const creditsData = calculateCredits(building);
+                    updateUI(creditsData, building);
+                } else {
+                    alert('Veuillez sélectionner un bâtiment.');
+                }
+            });
+        });
+
+        // Calculer les crédits pour un bâtiment donné
+        function calculateCredits(building) {
+            const apartments = JSON.parse(localStorage.getItem(`apartments-${building}`)) || [];
+            const monthlyFee = 50; // Cotisation mensuelle fixe (ex. 50 DH)
+            const currentDate = new Date(); // Date actuelle
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1; // Mois actuel (1 = Janvier, 12 = Décembre)
+
+            // Regrouper les paiements par appartement
+            const groupedApartments = {};
+            apartments.forEach(apartment => {
+                if (!groupedApartments[apartment.number]) {
+                    groupedApartments[apartment.number] = { number: apartment.number, lastPaid: null, totalPaid: 0 };
+                }
+
+                const paymentDate = new Date(`${apartment.year}-${apartment.month}-01`);
+                if (!groupedApartments[apartment.number].lastPaid || paymentDate > groupedApartments[apartment.number].lastPaid) {
+                    groupedApartments[apartment.number].lastPaid = paymentDate;
+                }
+
+                groupedApartments[apartment.number].totalPaid += apartment.paid;
+            });
+
+            // Calculer les crédits pour chaque appartement
+            const creditsData = Object.values(groupedApartments).map(apartment => {
+                const lastPaidYear = apartment.lastPaid?.getFullYear() || currentYear;
+                const lastPaidMonth = apartment.lastPaid?.getMonth() + 1 || 1;
+
+                // Calculer le nombre de mois restants
+                const monthsDiff = (currentYear - lastPaidYear) * 12 + (currentMonth - lastPaidMonth);
+
+                // Calculer le crédit
+                const credit = monthsDiff > 0 ? monthsDiff * monthlyFee : 0;
+
+                return {
+                    number: apartment.number,
+                    lastPaid: `${lastPaidYear}-${lastPaidMonth < 10 ? '0' + lastPaidMonth : lastPaidMonth}`,
+                    totalDue: apartment.totalPaid + credit,
+                    paid: apartment.totalPaid,
+                    credit: credit
+                };
+            });
+
+            return creditsData;
+        }
+
+        // Mettre à jour l'interface utilisateur avec les résultats
+        function updateUI(creditsData, building) {
+            const creditsBody = document.getElementById('credits-body');
+            const chartCanvas = document.getElementById('credits-chart').getContext('2d');
+
+            // Effacer le tableau
+            creditsBody.innerHTML = '';
+
+            // Ajouter les lignes dans le tableau
+            creditsData.forEach(credit => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${credit.number}</td>
+                    <td>${credit.lastPaid || 'Aucun paiement'}</td>
+                    <td>${credit.totalDue.toFixed(2)} DH</td>
+                    <td>${credit.paid.toFixed(2)} DH</td>
+                    <td>${credit.credit.toFixed(2)} DH</td>
+                `;
+                creditsBody.appendChild(row);
+            });
+
+            // Créer un graphique avec Chart.js
+            new Chart(chartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: creditsData.map(credit => credit.number),
+                    datasets: [{
+                        label: 'Crédit (DH)',
+                        data: creditsData.map(credit => credit.credit),
+                        backgroundColor: '#dc3545', // Couleur pour les crédits
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Exporter les crédits vers un fichier Excel
+        function exportCredits() {
+            const building = document.getElementById('building').value.trim();
+            if (!building) {
+                alert('Veuillez sélectionner un bâtiment avant d\'exporter.');
+                return;
+            }
+
+            const creditsData = calculateCredits(building);
+
+            // Préparer les données pour Excel
+            const worksheet = XLSX.utils.json_to_sheet([
+                { "Appartement": "Appartement", "Dernier Mois Payé": "Dernier Mois Payé", "Somme Totale Due (DH)": "Somme Totale Due (DH)", "Somme Payée (DH)": "Somme Payée (DH)", "Crédit (DH)": "Crédit (DH)" }, // En-têtes
+                ...creditsData.map(credit => ({
+                    "Appartement": credit.number,
+                    "Dernier Mois Payé": credit.lastPaid || 'Aucun paiement',
+                    "Somme Totale Due (DH)": credit.totalDue,
+                    "Somme Payée (DH)": credit.paid,
+                    "Crédit (DH)": credit.credit
+                }))
+            ]);
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, `Crédits - Bâtiment ${building}`);
+            XLSX.writeFile(workbook, `credits-batiment-${building}.xlsx`);
+        }
+    </script>
+</body>
+</html>

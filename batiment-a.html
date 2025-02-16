@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Cotisation - Bâtiment A</title>
+    <!-- Inclure la bibliothèque SheetJS pour Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        nav {
+            background: #444;
+            padding: 0.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-export {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-import {
+            background: #ffc107;
+            color: black;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gestion Résidence Alfiline</h1>
+        <nav>
+            <a href="index.html">🏠 Accueil</a>
+            <a href="depenses.html">Gestion des Dépenses</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>Suivi Cotisation - Bâtiment A</h2>
+
+            <!-- Formulaire pour Ajouter un Appartement -->
+            <form id="add-apartment-form">
+                <label for="apartment-number">Numéro d'Appartement:</label>
+                <input type="text" id="apartment-number" required>
+
+                <label for="month">Mois:</label>
+                <input type="text" id="month" required>
+
+                <label for="year">Année:</label>
+                <input type="text" id="year" required>
+
+                <label for="amount-paid">Montant Payé (DH):</label>
+                <input type="number" id="amount-paid" step="0.01" required>
+
+                <button type="submit" class="btn-add">Ajouter</button>
+            </form>
+
+            <!-- Tableau des Appartements -->
+            <table id="apartments-table">
+                <thead>
+                    <tr>
+                        <th>Appartement</th>
+                        <th>Mois</th>
+                        <th>Année</th>
+                        <th>Montant Payé (DH)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="apartments-body">
+                    <!-- Données seront chargées dynamiquement -->
+                </tbody>
+            </table>
+
+            <!-- Boutons Export/Import -->
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-export" onclick="exportToExcel()">Exporter Excel</button>
+                <label class="btn btn-import" for="excel-file">Importer Excel</label>
+                <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;" onchange="importFromExcel(event)">
+                <button class="btn btn-back" onclick="window.location.href='index.html'">Retour</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Gestion Résidence Alfiline</p>
+    </footer>
+
+    <script>
+        const building = 'A'; // Identifiant du bâtiment actuel
+
+        // Initialiser les données des appartements pour le bâtiment actuel
+        let apartments = JSON.parse(localStorage.getItem(`apartments-${building}`)) || [];
+
+        // Mettre à jour l'interface utilisateur
+        function updateUI() {
+            const apartmentsBody = document.getElementById('apartments-body');
+            apartmentsBody.innerHTML = '';
+
+            apartments.forEach((apartment, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${apartment.number}</td>
+                    <td>${apartment.month}</td>
+                    <td>${apartment.year}</td>
+                    <td>${apartment.paid.toFixed(2)}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editApartment(${index})">Modifier</button>
+                        <button class="btn-delete" onclick="deleteApartment(${index})">Supprimer</button>
+                    </td>
+                `;
+                apartmentsBody.appendChild(row);
+            });
+
+            localStorage.setItem(`apartments-${building}`, JSON.stringify(apartments));
+        }
+
+        // Gérer la soumission du formulaire
+        document.getElementById('add-apartment-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const number = document.getElementById('apartment-number').value.trim();
+            const month = document.getElementById('month').value.trim();
+            const year = document.getElementById('year').value.trim();
+            const paid = parseFloat(document.getElementById('amount-paid').value);
+
+            if (number && month && year && !isNaN(paid) && paid > 0) {
+                const newApartment = { number, month, year, paid };
+                apartments.push(newApartment);
+                updateUI();
+                this.reset();
+            } else {
+                alert('Veuillez entrer des informations valides.');
+            }
+        });
+
+        // Supprimer un appartement
+        function deleteApartment(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet appartement ?')) {
+                apartments.splice(index, 1);
+                updateUI();
+            }
+        }
+
+        // Modifier un appartement
+        function editApartment(index) {
+            const apartment = apartments[index];
+            const newNumber = prompt('Nouveau numéro d\'appartement:', apartment.number);
+            const newMonth = prompt('Nouveau mois:', apartment.month);
+            const newYear = prompt('Nouvelle année:', apartment.year);
+            const newPaid = parseFloat(prompt('Nouveau montant payé (DH):', apartment.paid));
+
+            if (newNumber && newMonth && newYear && !isNaN(newPaid) && newPaid > 0) {
+                apartment.number = newNumber;
+                apartment.month = newMonth;
+                apartment.year = newYear;
+                apartment.paid = newPaid;
+                updateUI();
+            } else {
+                alert('Veuillez entrer des informations valides.');
+            }
+        }
+
+        // Exporter les données vers un fichier Excel
+        function exportToExcel() {
+            const worksheet = XLSX.utils.json_to_sheet(apartments.map(apartment => ({
+                "Numéro d'Appartement": apartment.number,
+                Mois: apartment.month,
+                Année: apartment.year,
+                "Montant Payé (DH)": apartment.paid
+            })));
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, `Cotisations - Bâtiment ${building}`);
+            XLSX.writeFile(workbook, `cotisations-batiment-${building}.xlsx`);
+        }
+
+        // Importer les données depuis un fichier Excel
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    // Valider les données importées
+                    const validatedData = jsonData.map(item => {
+                        return {
+                            number: item["Numéro d'Appartement"],
+                            month: item.Mois,
+                            year: item.Année,
+                            paid: parseFloat(item["Montant Payé (DH)"])
+                        };
+                    }).filter(apartment => 
+                        apartment.number && apartment.month && apartment.year && !isNaN(apartment.paid) && apartment.paid > 0
+                    );
+
+                    if (validatedData.length === 0) {
+                        alert('Aucune donnée valide trouvée dans le fichier.');
+                        return;
+                    }
+
+                    // Remplacer les données existantes pour ce bâtiment
+                    apartments = validatedData;
+                    updateUI();
+                };
+
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        // Charger les données au démarrage
+        updateUI();
+    </script>
+</body>
+</html>

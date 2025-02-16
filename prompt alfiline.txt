@@ -1,0 +1,137 @@
+Prompt : Résumé du Projet de Gestion de Résidence Al Filline
+1. Objectif du Projet
+Le projet vise à créer une application web pour gérer les dépenses et les cotisations des bâtiments dans une résidence appelée "Al Filline". Les fonctionnalités principales incluent :
+
+Une page d'accueil avec une vue globale des dépenses et des cotisations.
+Une page dédiée à la gestion des dépenses où les utilisateurs peuvent ajouter, supprimer et afficher les dépenses générales.
+Des pages spécifiques pour chaque bâtiment (ex. Bâtiment A, Bâtiment B) permettant de suivre les cotisations des appartements.
+Une page de recherche des crédits pour calculer les restes dus par appartement.
+La possibilité d'importer et exporter des données au format Excel pour chaque bâtiment.
+2. Structure du Projet
+a. Pages Principales
+Page d'Accueil (index.html) :
+Affiche un total global combinant les dépenses générales et les cotisations des bâtiments.
+Contient un graphique montrant les cotisations payées par bâtiment.
+Liste les bâtiments avec des liens vers leurs pages respectives.
+Page de Gestion des Dépenses (depenses.html) :
+Permet d'ajouter, modifier, supprimer et afficher les dépenses générales.
+Chaque dépense est classée par type (eau, électricité, ménage, divers).
+Pages des Bâtiments (batiment-a.html, batiment-b.html, etc.) :
+Pour chaque bâtiment, les utilisateurs peuvent :
+Ajouter des appartements avec leurs détails (numéro, mois, année, montant payé).
+Modifier ou supprimer les informations des appartements.
+Exporter/importer les données des cotisations au format Excel.
+Page de Recherche des Crédits (credits.html) :
+Calcule les restes dus pour chaque appartement en fonction de la période (depuis janvier 2023 jusqu'au mois courant).
+Affiche un tableau récapitulatif avec :
+Numéro d'appartement.
+Somme totale due.
+Somme payée.
+Crédit restant.
+Inclut un graphique pour visualiser les crédits par appartement.
+Permet d'exporter les résultats au format Excel.
+3. Technologies Utilisées
+HTML : Structure du contenu.
+CSS : Design et mise en page.
+JavaScript : Logique métier et interactivité.
+Chart.js : Création de graphiques pour visualiser les données.
+SheetJS (xlsx) : Importation/exportation de fichiers Excel.
+4. Fonctionnalités Implémentées
+a. Page d'Accueil
+Vue Globale :
+Total global des dépenses et cotisations.
+Graphique montrant les cotisations payées par bâtiment.
+Navigation :
+Liens vers les pages de gestion des dépenses, des bâtiments et des crédits.
+b. Gestion des Dépenses
+Ajout de dépenses avec les champs suivants :
+Type de dépense (eau, électricité, ménage, divers).
+Montant.
+Suppression et modification des dépenses existantes.
+Exportation/importation des données au format CSV/Excel.
+c. Suivi des Cotisations par Bâtiment
+Pour chaque bâtiment, les utilisateurs peuvent :
+Ajouter des appartements avec leurs détails (numéro, mois, année, montant payé).
+Modifier ou supprimer les informations des appartements.
+Calculer automatiquement les totaux pour chaque appartement.
+Importation/exportation des données des cotisations au format Excel.
+d. Recherche des Crédits
+Calcul des restes dus pour chaque appartement :
+Période de calcul : Depuis janvier 2023 jusqu'au mois courant.
+Cotisation mensuelle fixe (par exemple, 100 DH).
+Affichage d'un tableau récapitulatif avec :
+Numéro d'appartement.
+Somme totale due.
+Somme payée.
+Crédit restant.
+Visualisation des crédits via un graphique en barres.
+Exportation des résultats au format Excel.
+5. Stockage des Données
+localStorage : Utilisé pour stocker temporairement les données sur le navigateur.
+Clés utilisées :
+expenses : Liste des dépenses générales.
+apartments-A, apartments-B, etc. : Liste des appartements et leurs cotisations pour chaque bâtiment.
+Fichiers Excel : Pour l'importation/exportation des données des cotisations des bâtiments.
+6. Améliorations Possibles
+Base de Données Backend : Remplacer localStorage par une base de données backend (ex. Firebase, Supabase) pour synchroniser les données entre appareils.
+Authentification : Ajouter un système de connexion pour sécuriser l'accès aux données.
+Notifications : Informer les utilisateurs lorsqu'une cotisation n'est pas payée.
+Responsive Design : Optimiser l'affichage pour les petits écrans (smartphones, tablettes).
+Historique des Modifications : Enregistrer les modifications apportées aux dépenses et cotisations.
+7. Exemple de Données
+Dépenses Générales
+json
+Copy
+1
+2
+3
+4
+⌄
+[
+    { "type": "Eau", "amount": 150 },
+    { "type": "Électricité", "amount": 200 }
+]
+Cotisations pour le Bâtiment A
+json
+Copy
+1
+2
+3
+4
+⌄
+[
+    { "number": "A1", "month": "Janvier", "year": "2023", "paid": 100 },
+    { "number": "A2", "month": "Février", "year": "2023", "paid": 150 }
+]
+Exemple de Fichier Excel Exporté
+A1
+Janvier
+2023
+100
+A2
+Février
+2023
+150
+
+8. Instructions d'Utilisation
+Ajouter une Dépense :
+Accédez à la page depenses.html.
+Remplissez le formulaire avec le type de dépense et le montant.
+Cliquez sur "Ajouter".
+Gérer les Cotisations d'un Bâtiment :
+Accédez à la page correspondante (ex. batiment-a.html).
+Ajoutez/modifiez/supprimez les informations des appartements.
+Exportez/importez les données au format Excel.
+Rechercher les Crédits :
+Accédez à la page credits.html.
+Sélectionnez un bâtiment dans le menu déroulant.
+Cliquez sur "Rechercher" pour voir les restes dus.
+Exportez les résultats au format Excel si nécessaire.
+9. Points Importants
+Les données sont isolées par bâtiment dans localStorage pour éviter les conflits.
+Les fichiers Excel importés doivent avoir les colonnes suivantes :
+Numéro d'appartement.
+Mois.
+Année.
+Montant payé.
+Les totaux sont mis à jour automatiquement après chaque modification.

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails Bâtiment</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Détails Bâtiment</h1>
+    </header>
+    <main class="container">
+        <h2 id="building-title">Bâtiment </h2>
+        <div id="building-table"></div>
+        <h3>Ajouter ou Effacer un Paiement</h3>
+        <form id="update-form">
+            <label for="apartment">Appartement:</label>
+            <input type="text" id="apartment" placeholder="Exemple: A1" required>
+            <label for="year">Année:</label>
+            <input type="number" id="year" placeholder="Exemple: 2023" required>
+            <label for="month">Mois (1-12):</label>
+            <input type="number" id="month" placeholder="Exemple: 1" required>
+            <label for="amount">Montant:</label>
+            <input type="number" id="amount" placeholder="Exemple: 50" required>
+            <button type="submit">Ajouter / Mettre à jour</button>
+        </form>
+        <button id="clear-payment">Effacer Paiement</button>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Dépenses et Revenus - Al Filline</title>
+    <style>
+        /* CSS Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        nav {
+            background: #444;
+            padding: 0.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        form {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"], input[type="date"], textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1e7e34;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gestion Résidence Alfiline</h1>
+        <nav>
+            <a href="index.html">🏠 Accueil</a>
+            <a href="depenses.html">Gestion des Dépenses et Revenus</a>
+            <a href="credits.html">Recherche de Crédits</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>Gestion des Dépenses et Revenus</h2>
+
+            <!-- Formulaire pour Ajouter une Dépense -->
+            <form id="add-expense-form">
+                <label for="expense-type">Type de Dépense (Eau, Électricité, Ménage, Divers):</label>
+                <input type="text" id="expense-type" required>
+
+                <label for="expense-amount">Montant (DH):</label>
+                <input type="number" id="expense-amount" step="0.01" required>
+
+                <label for="expense-date">Date de l'Opération :</label>
+                <input type="date" id="expense-date" required>
+
+                <label for="expense-note">Observations :</label>
+                <textarea id="expense-note" rows="3"></textarea>
+
+                <button type="submit">Ajouter Dépense</button>
+            </form>
+
+            <!-- Formulaire pour Ajouter un Revenu -->
+            <form id="add-income-form" style="margin-top: 2rem;">
+                <h3>Ajouter un Revenu</h3>
+
+                <label for="income-source">Source du Revenu (GarsonierAB, GarsonierBC, Divers):</label>
+                <input type="text" id="income-source" required>
+
+                <label for="income-amount">Montant (DH):</label>
+                <input type="number" id="income-amount" step="0.01" required>
+
+                <label for="income-date">Date de l'Opération :</label>
+                <input type="date" id="income-date" required>
+
+                <label for="income-note">Observations :</label>
+                <textarea id="income-note" rows="3"></textarea>
+
+                <button type="submit">Ajouter Revenu</button>
+            </form>
+
+            <!-- Tableau des Dépenses -->
+            <h3>Situation des Dépenses</h3>
+            <table id="expenses-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Montant (DH)</th>
+                        <th>Date</th>
+                        <th>Observations</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="expenses-body">
+                    <!-- Données seront chargées dynamiquement -->
+                </tbody>
+            </table>
+
+            <!-- Tableau des Revenus -->
+            <h3>Situation des Revenus</h3>
+            <table id="incomes-table">
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Montant (DH)</th>
+                        <th>Date</th>
+                        <th>Observations</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="incomes-body">
+                    <!-- Données seront chargées dynamiquement -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Gestion Résidence Alfiline</p>
+    </footer>
+
+    <script>
+        // Initialiser les données depuis localStorage
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        let incomes = JSON.parse(localStorage.getItem('incomes')) || [];
+
+        // Mettre à jour l'interface utilisateur
+        function updateUI() {
+            const expensesBody = document.getElementById('expenses-body');
+            const incomesBody = document.getElementById('incomes-body');
+
+            // Effacer les tableaux
+            expensesBody.innerHTML = '';
+            incomesBody.innerHTML = '';
+
+            // Afficher les dépenses
+            expenses.forEach((expense, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${expense.type}</td>
+                    <td>${expense.amount.toFixed(2)}</td>
+                    <td>${expense.date}</td>
+                    <td>${expense.note || 'Aucune observation'}</td>
+                    <td><button onclick="deleteExpense(${index})">Supprimer</button></td>
+                `;
+                expensesBody.appendChild(row);
+            });
+
+            // Afficher les revenus
+            incomes.forEach((income, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${income.source}</td>
+                    <td>${income.amount.toFixed(2)}</td>
+                    <td>${income.date}</td>
+                    <td>${income.note || 'Aucune observation'}</td>
+                    <td><button onclick="deleteIncome(${index})">Supprimer</button></td>
+                `;
+                incomesBody.appendChild(row);
+            });
+
+            // Sauvegarder les données dans localStorage
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            localStorage.setItem('incomes', JSON.stringify(incomes));
+        }
+
+        // Gérer l'ajout d'une dépense
+        document.getElementById('add-expense-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const type = document.getElementById('expense-type').value.trim();
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const date = document.getElementById('expense-date').value;
+            const note = document.getElementById('expense-note').value.trim();
+
+            if (type && !isNaN(amount) && amount > 0 && date) {
+                const newExpense = { type, amount, date, note };
+                expenses.push(newExpense);
+                updateUI();
+                this.reset();
+            } else {
+                alert('Veuillez entrer des informations valides pour la dépense.');
+            }
+        });
+
+        // Gérer l'ajout d'un revenu
+        document.getElementById('add-income-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const source = document.getElementById('income-source').value.trim();
+            const amount = parseFloat(document.getElementById('income-amount').value);
+            const date = document.getElementById('income-date').value;
+            const note = document.getElementById('income-note').value.trim();
+
+            if (source && !isNaN(amount) && amount > 0 && date) {
+                const newIncome = { source, amount, date, note };
+                incomes.push(newIncome);
+                updateUI();
+                this.reset();
+            } else {
+                alert('Veuillez entrer des informations valides pour le revenu.');
+            }
+        });
+
+        // Supprimer une dépense
+        function deleteExpense(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')) {
+                expenses.splice(index, 1);
+                updateUI();
+            }
+        }
+
+        // Supprimer un revenu
+        function deleteIncome(index) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce revenu ?')) {
+                incomes.splice(index, 1);
+                updateUI();
+            }
+        }
+
+        // Charger les données au démarrage
+        updateUI();
+    </script>
+</body>
+</html>
